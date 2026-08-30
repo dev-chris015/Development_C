@@ -13,9 +13,7 @@ EXECS := $(SRCS:.c=)
 
 # Default target: compile all found C files
 all: $(EXECS)
-	@echo "=========================================="
 	@echo " Compilación finalizada con éxito."
-	@echo "=========================================="
 
 # Generic rule to compile any .c file into its executable target
 %: %.c
