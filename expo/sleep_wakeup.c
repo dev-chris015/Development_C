@@ -9,6 +9,7 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 int ready_flag = 0; // Condición compartida
 
 void* worker_thread(void* arg) {
+    (void)arg;
     printf("[Hilo Trabajador] Iniciando, pero esperando la señal para continuar...\n");
     
     pthread_mutex_lock(&mutex);

@@ -7,6 +7,7 @@ long shared_counter = 0;
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 void* increment_routine(void* arg) {
+    (void)arg;
     for (int i = 0; i < 1000000; i++) {
         // --- INICIO DE LA REGIÓN CRÍTICA ---
         pthread_mutex_lock(&lock);
