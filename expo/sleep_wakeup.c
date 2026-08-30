@@ -22,9 +22,13 @@ void* worker_thread(void* arg) {
     return NULL;
 }
 
-int main() {
+int main(void) {
     pthread_t worker;
-    pthread_create(&worker, NULL, worker_thread, NULL);
+
+    if (pthread_create(&worker, NULL, worker_thread, NULL) != 0) {
+        perror("Error al crear el hilo trabajador");
+        return EXIT_FAILURE;
+    }
 
     printf("[Hilo Principal] Preparando recursos durante 3 segundos...\n");
     sleep(3);
@@ -35,9 +39,12 @@ int main() {
     pthread_cond_signal(&cond); // Despertar al hilo dormido
     pthread_mutex_unlock(&mutex);
 
-    pthread_join(worker, NULL);
+    if (pthread_join(worker, NULL) != 0) {
+        perror("Error al unirse al hilo trabajador");
+        return EXIT_FAILURE;
+    }
     
     pthread_mutex_destroy(&mutex);
     pthread_cond_destroy(&cond);
-    return 0;
+    return EXIT_SUCCESS;
 }
