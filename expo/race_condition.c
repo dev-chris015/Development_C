@@ -10,9 +10,9 @@ void* increment_routine(void* arg) {
     (void)arg;
     for (int i = 0; i < 1000000; i++) {
         // entrada a la region critica
-        //pthread_mutex_lock(&lock);
+        pthread_mutex_lock(&lock);
         shared_counter++;
-        //pthread_mutex_unlock(&lock);
+        pthread_mutex_unlock(&lock);
         // salida de la region critica
     }
     return NULL;
