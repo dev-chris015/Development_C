@@ -2,18 +2,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-long shared_counter = 0;
+volatile long shared_counter = 0;
 // Inicialización estática del Mutex
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 void* increment_routine(void* arg) {
     (void)arg;
     for (int i = 0; i < 1000000; i++) {
-        // --- INICIO DE LA REGIÓN CRÍTICA ---
-        pthread_mutex_lock(&lock);
+        // entrada a la region critica
+        //pthread_mutex_lock(&lock);
         shared_counter++;
-        pthread_mutex_unlock(&lock);
-        // --- FIN DE LA REGIÓN CRÍTICA ---
+        //pthread_mutex_unlock(&lock);
+        // salida de la region critica
     }
     return NULL;
 }
@@ -43,7 +43,7 @@ int main(void) {
         return EXIT_FAILURE;
     }
 
-    printf("Valor final del contador: %ld (Esperado: 2000000)\n", shared_counter);
+    printf("Valor final del contador: %ld\n", shared_counter);
 
     // Destruir el mutex
     pthread_mutex_destroy(&lock);
