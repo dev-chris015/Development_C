@@ -57,8 +57,8 @@ int main(void) {
         return EXIT_FAILURE;
     }
 
-    printf("Servidor listo. Abra otra terminal y ejecute ./cliente\n");
-    printf("Se realizaran hasta %d rondas (20 mensajes de cada lado).\n", RONDAS);
+    printf("\nServidor listo. Abra otra terminal y ejecute ./cliente\n");
+    printf("Se realizaran hasta %d rondas (20 mensajes de cada lado).\n\n", RONDAS);
 
     for (int ronda = 1; ronda <= RONDAS; ronda++) {
         char texto[MAX_TEXTO];
@@ -88,6 +88,6 @@ int main(void) {
         perror("msgctl(IPC_RMID)");
         return EXIT_FAILURE;
     }
-    printf("Servidor: conversacion finalizada y cola eliminada.\n");
+    printf("\nServidor: conversacion finalizada y cola eliminada.\n\n");
     return EXIT_SUCCESS;
 }

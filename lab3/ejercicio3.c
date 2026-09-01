@@ -21,7 +21,7 @@ int main(void) {
         }
 
         if (nieto == 0) {
-            printf("NIETO: PID=%ld, PID de su padre (Hijo)=%ld\n",
+            printf("NIETO: PID=%ld, PID de su padre (Hijo)=%ld\n\n",
                    (long)getpid(), (long)getppid());
             sleep(15);
             _exit(EXIT_SUCCESS);
@@ -38,9 +38,9 @@ int main(void) {
         _exit(EXIT_SUCCESS);
     }
 
-    printf("PADRE: PID=%ld, PID de su creador=%ld, PID de su hijo=%ld\n",
+    printf("\nPADRE: PID=%ld, PID de su creador=%ld, PID de su hijo=%ld\n",
            (long)getpid(), (long)getppid(), (long)hijo);
-    printf("Durante 15 segundos ejecute en otra terminal: pstree -p %ld\n",
+    printf("Durante 15 segundos ejecute en otra terminal: pstree -p %ld\n\n",
            (long)getpid());
     sleep(15);
 
@@ -49,6 +49,6 @@ int main(void) {
         return EXIT_FAILURE;
     }
 
-    printf("PADRE: la jerarquia completa ha terminado.\n");
+    printf("\nPADRE: la jerarquia completa ha terminado.\n\n");
     return EXIT_SUCCESS;
 }

@@ -50,7 +50,7 @@ int main(void) {
         return EXIT_FAILURE;
     }
 
-    printf("Receptor conectado al emisor.\n");
+    printf("\nReceptor conectado al emisor.\n\n");
 
     for (int ronda = 1; ronda <= RONDAS; ronda++) {
         struct mensaje recibido;
@@ -81,6 +81,6 @@ int main(void) {
         }
     }
 
-    printf("Receptor: comunicacion finalizada.\n");
+    printf("\nReceptor: comunicacion finalizada.\n\n");
     return EXIT_SUCCESS;
 }

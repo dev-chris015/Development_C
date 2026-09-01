@@ -50,7 +50,7 @@ int main(void) {
         return EXIT_FAILURE;
     }
 
-    printf("Cliente conectado al servidor.\n");
+    printf("\nCliente conectado al servidor.\n\n");
 
     for (int ronda = 1; ronda <= RONDAS; ronda++) {
         struct mensaje recibido;
@@ -81,6 +81,6 @@ int main(void) {
         }
     }
 
-    printf("Cliente: conversacion finalizada.\n");
+    printf("\nCliente: conversacion finalizada.\n\n");
     return EXIT_SUCCESS;
 }

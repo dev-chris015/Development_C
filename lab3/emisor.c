@@ -57,7 +57,7 @@ int main(void) {
         return EXIT_FAILURE;
     }
 
-    printf("Emisor listo. Abra otra terminal y ejecute ./receptor\n");
+    printf("\nEmisor listo. Abra otra terminal y ejecute ./receptor\n\n");
 
     for (int ronda = 1; ronda <= RONDAS; ronda++) {
         char texto[MAX_TEXTO];
@@ -86,6 +86,6 @@ int main(void) {
         perror("msgctl(IPC_RMID)");
         return EXIT_FAILURE;
     }
-    printf("Emisor: comunicacion finalizada y cola eliminada.\n");
+    printf("\nEmisor: comunicacion finalizada y cola eliminada.\n\n");
     return EXIT_SUCCESS;
 }

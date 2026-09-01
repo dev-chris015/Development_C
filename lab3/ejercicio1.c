@@ -16,7 +16,7 @@ int main(void) {
     }
 
     if (hijo1 == 0) {
-        printf("Hijo 1: PID=%ld, PID del padre=%ld\n",
+        printf("\nHijo 1: PID=%ld, PID del padre=%ld\n",
                (long)getpid(), (long)getppid());
         _exit(EXIT_SUCCESS);
     }
@@ -30,7 +30,7 @@ int main(void) {
     }
 
     if (hijo2 == 0) {
-        printf("Hijo 2: PID=%ld. Ejecutando ls -l con execlp()...\n",
+        printf("\nHijo 2: PID=%ld. Ejecutando ls -l con execlp()...\n\n",
                (long)getpid());
         execlp("ls", "ls", "-l", (char *)NULL);
 
@@ -49,14 +49,14 @@ int main(void) {
         }
 
         if (WIFEXITED(estado)) {
-            printf("Padre: el hijo PID=%ld termino con codigo %d.\n",
+            printf("\nPadre: el hijo PID=%ld termino con codigo %d.\n",
                    (long)terminado, WEXITSTATUS(estado));
         } else if (WIFSIGNALED(estado)) {
-            printf("Padre: el hijo PID=%ld termino por la senal %d.\n",
+            printf("\nPadre: el hijo PID=%ld termino por la senal %d.\n",
                    (long)terminado, WTERMSIG(estado));
         }
     }
 
-    printf("Todos los procesos hijos han terminado. Finalizando proceso padre.\n");
+    printf("\nTodos los procesos hijos han terminado. Finalizando proceso padre.\n\n");
     return EXIT_SUCCESS;
 }
