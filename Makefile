@@ -1,6 +1,6 @@
 # Compiler and flags configuration
 CC ?= gcc
-CFLAGS ?= -Wall -Wextra -O2 -g -pthread
+CFLAGS ?= -Wall -Wextra -Wpedantic -std=c11 -O2 -g -pthread
 LDFLAGS ?= -pthread
 
 # Automatically find all .c files in subdirectories (up to 4 levels deep)
