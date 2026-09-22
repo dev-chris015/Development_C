@@ -57,7 +57,7 @@ int main(void) {
         return EXIT_FAILURE;
     }
 
-    printf("\nEmisor listo. Abra otra terminal y ejecute ./receptor\n\n");
+    printf("\nEmisor listo.\n\n");
 
     for (int ronda = 1; ronda <= RONDAS; ronda++) {
         char texto[MAX_TEXTO];
