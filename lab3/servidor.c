@@ -7,7 +7,7 @@
 
 #define LLAVE 34856
 #define MAX_TEXTO 256
-#define RONDAS 20
+#define RONDAS 10
 #define PARA_CLIENTE 1L
 #define PARA_SERVIDOR 2L
 
@@ -58,7 +58,7 @@ int main(void) {
     }
 
     printf("\nServidor listo. Abra otra terminal y ejecute ./cliente\n");
-    printf("Se realizaran hasta %d rondas (20 mensajes de cada lado).\n\n", RONDAS);
+    printf("Se realizaran hasta %d rondas 10 mensajes de cada lado.\n\n", RONDAS);
 
     for (int ronda = 1; ronda <= RONDAS; ronda++) {
         char texto[MAX_TEXTO];
