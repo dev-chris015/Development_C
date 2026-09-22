@@ -6,7 +6,7 @@
 
 #define LLAVE 34856
 #define MAX_TEXTO 256
-#define RONDAS 20
+#define RONDAS 10
 #define PARA_CLIENTE 1L
 #define PARA_SERVIDOR 2L
 
