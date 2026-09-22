@@ -57,7 +57,7 @@ int main(void) {
         return EXIT_FAILURE;
     }
 
-    printf("\nServidor listo. Abra otra terminal y ejecute ./cliente\n");
+    printf("\nServidor listo.\n");
     printf("Se realizaran hasta %d rondas 10 mensajes de cada lado.\n\n", RONDAS);
 
     for (int ronda = 1; ronda <= RONDAS; ronda++) {
