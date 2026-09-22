@@ -6,7 +6,7 @@
 
 #define LLAVE 34857
 #define MAX_TEXTO 256
-#define RONDAS 20
+#define RONDAS 10
 #define PARA_RECEPTOR 1L
 #define PARA_EMISOR 2L
 
