@@ -1,16 +1,20 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -g
 
-# Buscar todos los archivos .c en el proyecto (removiendo el prefijo ./)
+# Archivo/Ejecutable individual a compilar por defecto (modificable con FILE=...)
+FILE ?= lab6/ejercicio
+
+# Buscar todos los ejecutables del proyecto (usado para clean y compile-all)
 SRCS = $(shell find . -type f -name "*.c" | sed 's|^\./||')
 TARGETS = $(SRCS:.c=)
 
-# Ejecutable por defecto si no se indica FILE=... (ej: lab6/ejercicio)
-FILE ?= lab6/ejercicio
+# Por defecto compila ÚNICAMENTE el archivo individual indicado en FILE
+all: $(FILE)
 
-all: $(TARGETS)
+# Regla explícita si se desea compilar absolutamente todos los archivos del proyecto
+compile-all: $(TARGETS)
 
-# Regla patrón general para compilar cualquier archivo .c
+# Regla patrón para compilar cualquier archivo .c individualmente
 %: %.c
 	$(CC) $(CFLAGS) $< -o $@
 
@@ -23,6 +27,7 @@ valgrind: $(FILE)
 clean:
 	rm -f $(TARGETS)
 
-.PHONY: all run valgrind clean
+.PHONY: all compile-all run valgrind clean
+
 
 

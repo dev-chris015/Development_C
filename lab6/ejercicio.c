@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
     size_t capacidad = 0;
     size_t total_cadenas = 0;
 
-    // Variables para la lectura con getline
+    // variables para la lectura con getline
     char *linea = NULL;
     size_t len = 0;
     ssize_t leidos;
@@ -33,7 +33,6 @@ int main(int argc, char *argv[]) {
     
     // Lectura Dinámica
     while ((leidos = getline(&linea, &len, archivo)) != -1) {
-        // elimino salto de linea
         if (leidos > 0 && linea[leidos - 1] == '\n') {
             linea[leidos - 1] = '\0';
             leidos--;
@@ -50,11 +49,11 @@ int main(int argc, char *argv[]) {
             cadenas = nuevo_arreglo;
         }
 
-        // Asignar memoria exacta para la cadena
+        // asigno memoria exacta para la cadena
         size_t bytes_asignados = leidos + 1; // caracter nulo
         cadenas[total_cadenas] = malloc(bytes_asignados);
         
-        // Verificar asignación
+        // ver si hay errores de asignación
         if (!cadenas[total_cadenas]) {
             perror("Error de asignación para la cadena");
             break;
