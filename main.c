@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
         total_bytes_cadenas += bytes_asignados;
 
         // Determinar la cadena más larga
-        if (leidos > max_longitud || total_cadenas == 0) {
+        if (leidos > (ssize_t)max_longitud || total_cadenas == 0) {
             max_longitud = leidos;
             cadena_mas_larga = cadenas[total_cadenas];
         }
