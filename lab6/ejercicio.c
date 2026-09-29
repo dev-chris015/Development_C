@@ -3,7 +3,6 @@
 #include <string.h>
 
 int main(int argc, char *argv[]) {
-    // Paso 1: Configurar la Ruta del Archivo de Entrada
     const char *archivo_path = "/home/devchris/Descargas/cadenas.txt";
     if (argc > 1) {
         archivo_path = argv[1];
@@ -15,7 +14,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // Paso 2: Arreglo Dinámico de Punteros
+    // arreglo de punteros
     char **cadenas = NULL;
     size_t capacidad = 0;
     size_t total_cadenas = 0;
@@ -34,7 +33,7 @@ int main(int argc, char *argv[]) {
     
     // Lectura Dinámica
     while ((leidos = getline(&linea, &len, archivo)) != -1) {
-        // Eliminar salto de línea si existe
+        // elimino salto de linea
         if (leidos > 0 && linea[leidos - 1] == '\n') {
             linea[leidos - 1] = '\0';
             leidos--;
@@ -52,37 +51,35 @@ int main(int argc, char *argv[]) {
         }
 
         // Asignar memoria exacta para la cadena
-        size_t bytes_asignados = leidos + 1; // +1 para el carácter nulo '\0'
+        size_t bytes_asignados = leidos + 1; // caracter nulo
         cadenas[total_cadenas] = malloc(bytes_asignados);
         
-        // Verificar asignación válida
+        // Verificar asignación
         if (!cadenas[total_cadenas]) {
             perror("Error de asignación para la cadena");
             break;
         }
         
-        // Guardar la cadena
         strcpy(cadenas[total_cadenas], linea);
         total_bytes_cadenas += bytes_asignados;
 
-        // Determinar la cadena más larga
+        //cadena más larga
         if (leidos > (ssize_t)max_longitud || total_cadenas == 0) {
             max_longitud = leidos;
             cadena_mas_larga = cadenas[total_cadenas];
         }
 
-        // Imprimir contenido, tamaño en bytes y dirección de memoria
-        printf("Cadena %zu: '%s' | Tamaño: %zu bytes | Dirección: %p\n",
-               total_cadenas + 1, cadenas[total_cadenas], bytes_asignados, (void *)cadenas[total_cadenas]);
+        // resultado
+        printf("Cadena %zu: '%s'\n", total_cadenas + 1, cadenas[total_cadenas]);
+        printf("  Tamaño: %zu bytes | Dirección: %p\n\n", bytes_asignados, (void *)cadenas[total_cadenas]);
 
         total_cadenas++;
     }
 
-    // Liberar el buffer usado por getline y cerrar archivo
+    // Liberar el buffer
     free(linea);
     fclose(archivo);
 
-    // Cálculo y muestra de Estadísticas
     printf("\n--- Estadísticas ---\n");
     size_t bytes_arreglo_punteros = capacidad * sizeof(char *);
     printf("Total de cadenas procesadas: %zu\n", total_cadenas);
@@ -98,7 +95,7 @@ int main(int argc, char *argv[]) {
         printf("No se procesaron cadenas.\n");
     }
 
-    // Liberar toda la memoria dinámica antes de salir
+    // Liberar toda la memoria dinámica
     for (size_t i = 0; i < total_cadenas; i++) {
         free(cadenas[i]);
     }

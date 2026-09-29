@@ -1,17 +1,28 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -g
-TARGET = main
 
-all: $(TARGET)
+# Buscar todos los archivos .c en el proyecto (removiendo el prefijo ./)
+SRCS = $(shell find . -type f -name "*.c" | sed 's|^\./||')
+TARGETS = $(SRCS:.c=)
 
-$(TARGET): main.c
-	$(CC) $(CFLAGS) -o $(TARGET) main.c
+# Ejecutable por defecto si no se indica FILE=... (ej: lab6/ejercicio)
+FILE ?= lab6/ejercicio
 
-run: all
-	./$(TARGET)
+all: $(TARGETS)
 
-valgrind: all
-	valgrind --leak-check=full --show-leak-kinds=all ./$(TARGET)
+# Regla patrón general para compilar cualquier archivo .c
+%: %.c
+	$(CC) $(CFLAGS) $< -o $@
+
+run: $(FILE)
+	./$(FILE)
+
+valgrind: $(FILE)
+	valgrind --leak-check=full --show-leak-kinds=all ./$(FILE)
 
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGETS)
+
+.PHONY: all run valgrind clean
+
+
