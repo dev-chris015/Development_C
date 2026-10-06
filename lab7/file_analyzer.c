@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/stat.h>
@@ -35,6 +36,14 @@ typedef struct Options {
     int detect_duplicates;    // Bandera -d (detección de duplicados)
 } Options;
 
+// Estructura auxiliar para ordenar entradas de directorio antes de imprimirlas
+typedef struct DirEntry {
+    char name[256];
+    char full_path[1024];
+    struct stat statbuf;
+    int is_dir;
+} DirEntry;
+
 // Convierte el tamaño en bytes a un formato legible (B, KB, MB, GB, TB)
 void human_readable_size(off_t bytes, char *buffer, size_t buf_size) {
     const char *units[] = {"B", "KB", "MB", "GB", "TB"};
@@ -47,9 +56,9 @@ void human_readable_size(off_t bytes, char *buffer, size_t buf_size) {
     }
 
     if (unit_index == 0) {
-        snprintf(buffer, buf_size, "%ldB", (long)bytes);
+        snprintf(buffer, buf_size, "%ld B", (long)bytes);
     } else {
-        snprintf(buffer, buf_size, "%.1f%s", size, units[unit_index]);
+        snprintf(buffer, buf_size, "%.1f %s", size, units[unit_index]);
     }
 }
 
@@ -139,10 +148,19 @@ void free_file_list(FileInfo *head) {
     }
 }
 
-// Aplica indentación gráfica basada en la profundidad simulando el comando tree
-void print_indentation(int depth) {
+// Imprime los prefijos gráficos de árbol (├──, └──, │   ,    ) según la profundidad
+void print_tree_prefix(int depth, const int *is_last_stack, int is_last) {
     for (int i = 0; i < depth; i++) {
-        printf("│   ");
+        if (is_last_stack[i]) {
+            printf("    ");
+        } else {
+            printf("│   ");
+        }
+    }
+    if (is_last) {
+        printf("└── ");
+    } else {
+        printf("├── ");
     }
 }
 
@@ -180,71 +198,123 @@ void format_file_details(FileInfo *node, Options *opts, char *details, size_t ma
     }
 }
 
-// Fase 2: Función recursiva para recorrer directorios y extraer metadatos
-void analyze_directory(const char *base_path, int depth, Options *opts, FileInfo **file_list, int *total_files, int *total_dirs) {
+// Función de comparación para qsort: coloca directorios primero y luego ordena alfabéticamente
+int compare_entries(const void *a, const void *b) {
+    const DirEntry *entryA = (const DirEntry *)a;
+    const DirEntry *entryB = (const DirEntry *)b;
+    if (entryA->is_dir && !entryB->is_dir) return -1;
+    if (!entryA->is_dir && entryB->is_dir) return 1;
+    return strcasecmp(entryA->name, entryB->name);
+}
+
+// Función recursiva para recorrer directorios y extraer metadatos organizados en árbol
+void analyze_directory(const char *base_path, int depth, int *is_last_stack, Options *opts,
+                       FileInfo **file_list, int *total_files, int *total_dirs, off_t *total_bytes) {
     DIR *dir = opendir(base_path);
     if (!dir) {
-        print_indentation(depth);
-        printf("└── [Error al abrir directorio: %s]\n", base_path);
+        print_tree_prefix(depth, is_last_stack, 1);
+        printf("[Error al abrir directorio: %s]\n", base_path);
         return;
     }
 
     struct dirent *entry;
+    DirEntry *entries = NULL;
+    size_t count = 0;
+    size_t capacity = 0;
+
     while ((entry = readdir(dir)) != NULL) {
-        // Ignorar los directorios especiales . y ..
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
             continue;
         }
 
-        // Construir la ruta completa del archivo o subdirectorio
-        char full_path[1024];
+        if (count >= capacity) {
+            capacity = (capacity == 0) ? 16 : capacity * 2;
+            DirEntry *temp = (DirEntry *)realloc(entries, capacity * sizeof(DirEntry));
+            if (!temp) {
+                perror("Error al reasignar memoria para entradas");
+                free(entries);
+                closedir(dir);
+                return;
+            }
+            entries = temp;
+        }
+
+        snprintf(entries[count].name, sizeof(entries[count].name), "%s", entry->d_name);
         if (strcmp(base_path, "/") == 0) {
-            snprintf(full_path, sizeof(full_path), "/%s", entry->d_name);
+            snprintf(entries[count].full_path, sizeof(entries[count].full_path), "/%s", entry->d_name);
         } else {
-            snprintf(full_path, sizeof(full_path), "%s/%s", base_path, entry->d_name);
+            snprintf(entries[count].full_path, sizeof(entries[count].full_path), "%s/%s", base_path, entry->d_name);
         }
 
-        // Obtener metadatos sin seguir enlaces simbólicos mediante lstat()
-        struct stat file_stat;
-        if (lstat(full_path, &file_stat) != 0) {
-            print_indentation(depth);
-            printf("├── %s [Error en lstat]\n", entry->d_name);
-            continue;
+        if (lstat(entries[count].full_path, &entries[count].statbuf) != 0) {
+            memset(&entries[count].statbuf, 0, sizeof(struct stat));
+            entries[count].is_dir = 0;
+        } else {
+            entries[count].is_dir = S_ISDIR(entries[count].statbuf.st_mode);
         }
+        count++;
+    }
+    closedir(dir);
 
-        int is_dir = S_ISDIR(file_stat.st_mode);
-        FileInfo *node = create_file_node(full_path, entry->d_name, &file_stat, is_dir);
+    if (count > 0) {
+        qsort(entries, count, sizeof(DirEntry), compare_entries);
+    }
 
-        if (!is_dir) {
+    for (size_t i = 0; i < count; i++) {
+        int is_last = (i == count - 1);
+        DirEntry *item = &entries[i];
+
+        FileInfo *node = create_file_node(item->full_path, item->name, &item->statbuf, item->is_dir);
+
+        if (!item->is_dir) {
             (*total_files)++;
-            // Si la bandera -h o -d esta activa, se calcula el hash MD5
+            *total_bytes += item->statbuf.st_size;
             if (opts->show_hash || opts->detect_duplicates) {
-                get_file_hash(full_path, node->hash);
+                get_file_hash(item->full_path, node->hash);
             }
             add_file_node(file_list, node);
         } else {
             (*total_dirs)++;
         }
 
-        // Impresión gráfica de la estructura en árbol
-        print_indentation(depth);
+        print_tree_prefix(depth, is_last_stack, is_last);
+
         char details[512];
         format_file_details(node, opts, details, sizeof(details));
-        printf("├── %s%s\n", entry->d_name, details);
 
-        // Llamada recursiva para subdirectorios
-        if (is_dir) {
-            analyze_directory(full_path, depth + 1, opts, file_list, total_files, total_dirs);
+        if (item->is_dir) {
+            printf("%s/%s\n", item->name, details);
+        } else if (item->statbuf.st_mode & S_IXUSR) {
+            printf("%s*%s\n", item->name, details);
+        } else if (S_ISLNK(item->statbuf.st_mode)) {
+            printf("%s@%s\n", item->name, details);
+        } else {
+            printf("%s%s\n", item->name, details);
+        }
+
+        if (item->is_dir) {
+            is_last_stack[depth] = is_last;
+            analyze_directory(item->full_path, depth + 1, is_last_stack, opts, file_list, total_files, total_dirs, total_bytes);
         }
     }
 
-    closedir(dir);
+    free(entries);
 }
 
-// Fase 4: Algoritmo de agrupación y reporte de archivos duplicados por inodo o hash MD5
-void process_duplicates(FileInfo *head, int total_files) {
-    printf("\n- Resumen de deteccion de duplicados\n");
-    printf("Total de archivos analizados: %d\n", total_files);
+// Imprime un resumen visual general limpio y estructurado
+void print_summary(int total_dirs, int total_files, off_t total_bytes) {
+    char size_str[32];
+    human_readable_size(total_bytes, size_str, sizeof(size_str));
+
+    printf("\nResumen General:\n");
+    printf("  Directorios analizados : %d\n", total_dirs);
+    printf("  Archivos analizados    : %d\n", total_files);
+    printf("  Tamaño total           : %s\n", size_str);
+}
+
+// Algoritmo de agrupación y reporte de archivos duplicados por inodo o hash MD5
+void process_duplicates(FileInfo *head) {
+    printf("\nDetección de Duplicados:\n");
 
     int file_count = 0;
     FileInfo *curr = head;
@@ -254,7 +324,7 @@ void process_duplicates(FileInfo *head, int total_files) {
     }
 
     if (file_count == 0) {
-        printf("No hay archivos para analizar duplicados.\n");
+        printf("  No hay archivos para analizar duplicados.\n");
         return;
     }
 
@@ -273,6 +343,7 @@ void process_duplicates(FileInfo *head, int total_files) {
     int *visited = (int *)calloc(file_count, sizeof(int));
     int duplicate_groups = 0;
     int total_duplicates_count = 0;
+    off_t total_wasted_bytes = 0;
 
     for (int i = 0; i < file_count; i++) {
         if (visited[i]) continue;
@@ -295,24 +366,38 @@ void process_duplicates(FileInfo *head, int total_files) {
                     duplicate_groups++;
                     char size_str[32];
                     human_readable_size(files[i]->size, size_str, sizeof(size_str));
-                    printf("\nGrupo %d (Hash: %s, Tamaño: %s):\n", duplicate_groups,
-                           files[i]->hash[0] ? files[i]->hash : "N/A", size_str);
-                    printf("  - %s (Inodo: %lu)\n", files[i]->path, (unsigned long)files[i]->inode);
+
+                    printf("\n  Grupo %d (MD5: %s, Tamaño: %s)\n",
+                           duplicate_groups, files[i]->hash[0] ? files[i]->hash : "N/A", size_str);
+                    printf("    Original : %s (ino: %lu)\n",
+                           files[i]->path, (unsigned long)files[i]->inode);
+
                     visited[i] = 1;
                     group_count++;
-                    total_duplicates_count++;
                 }
 
-                printf("  - %s (Inodo: %lu)\n", files[j]->path, (unsigned long)files[j]->inode);
+                printf("    Copia %-2d : %s (ino: %lu)\n",
+                       group_count, files[j]->path, (unsigned long)files[j]->inode);
+
                 visited[j] = 1;
                 group_count++;
                 total_duplicates_count++;
+                total_wasted_bytes += files[j]->size;
             }
         }
     }
 
-    printf("\nGrupos de archivos duplicados encontrados: %d\n", duplicate_groups);
-    printf("Total de archivos duplicados (incluyendo copias): %d\n", total_duplicates_count);
+    if (duplicate_groups == 0) {
+        printf("  No se encontraron archivos duplicados.\n");
+    } else {
+        char wasted_str[32];
+        human_readable_size(total_wasted_bytes, wasted_str, sizeof(wasted_str));
+
+        printf("\n  Resumen de duplicados:\n");
+        printf("    Grupos encontrados   : %d\n", duplicate_groups);
+        printf("    Copias redundantes   : %d\n", total_duplicates_count);
+        printf("    Espacio malgastado   : %s\n", wasted_str);
+    }
 
     free(files);
     free(visited);
@@ -320,13 +405,16 @@ void process_duplicates(FileInfo *head, int total_files) {
 
 // Muestra el mensaje de ayuda de uso del programa
 void print_usage(const char *prog_name) {
-    printf("Uso: %s [opciones] <directorio>\n", prog_name);
+    printf("Uso: %s [opciones] <directorio>\n\n", prog_name);
     printf("Opciones:\n");
     printf("  -i  Mostrar número de inodo\n");
     printf("  -p  Mostrar permisos y propietario/grupo\n");
     printf("  -s  Mostrar tamaño de archivo legible (human-readable)\n");
     printf("  -h  Calcular y mostrar hash MD5\n");
-    printf("  -d  Detectar y mostrar archivos duplicados\n");
+    printf("  -d  Detectar y agrupar archivos duplicados\n\n");
+    printf("Ejemplos:\n");
+    printf("  %s -s .\n", prog_name);
+    printf("  %s -ipshd /ruta/al/directorio\n", prog_name);
 }
 
 // Punto de entrada principal y análisis de opciones por línea de comandos con getopt()
@@ -365,17 +453,18 @@ int main(int argc, char *argv[]) {
     FileInfo *file_list = NULL;
     int total_files = 0;
     int total_dirs = 0;
+    off_t total_bytes = 0;
+    int is_last_stack[1024] = {0};
 
-    printf("Analizando directorio: %s\n", target_dir);
-    analyze_directory(target_dir, 0, &opts, &file_list, &total_files, &total_dirs);
+    printf("%s\n", target_dir);
+    analyze_directory(target_dir, 0, is_last_stack, &opts, &file_list, &total_files, &total_dirs, &total_bytes);
 
-    printf("\nResumen general:\n");
-    printf("Directorios analizados: %d\n", total_dirs);
-    printf("Archivos analizados: %d\n", total_files);
+    // Reporte de resumen general
+    print_summary(total_dirs, total_files, total_bytes);
 
-    // Si la opción -d esta activada, procesar y mostrar duplicados
+    // Si la opción -d está activada, procesar y mostrar duplicados
     if (opts.detect_duplicates) {
-        process_duplicates(file_list, total_files);
+        process_duplicates(file_list);
     }
 
     free_file_list(file_list);
