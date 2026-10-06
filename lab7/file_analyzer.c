@@ -243,9 +243,7 @@ void analyze_directory(const char *base_path, int depth, Options *opts, FileInfo
 
 // Fase 4: Algoritmo de agrupación y reporte de archivos duplicados por inodo o hash MD5
 void process_duplicates(FileInfo *head, int total_files) {
-    printf("\n==================================================\n");
-    printf("RESUMEN DE DETECCIÓN DE DUPLICADOS\n");
-    printf("==================================================\n");
+    printf("\n- Resumen de deteccion de duplicados\n");
     printf("Total de archivos analizados: %d\n", total_files);
 
     int file_count = 0;
