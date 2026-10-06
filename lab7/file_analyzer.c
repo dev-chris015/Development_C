@@ -284,10 +284,10 @@ void analyze_directory(const char *base_path, int depth, int *is_last_stack, Opt
 
         if (item->is_dir) {
             printf("%s/%s\n", item->name, details);
-        } else if (item->statbuf.st_mode & S_IXUSR) {
-            printf("%s*%s\n", item->name, details);
         } else if (S_ISLNK(item->statbuf.st_mode)) {
             printf("%s@%s\n", item->name, details);
+        } else if (item->statbuf.st_mode & S_IXUSR) {
+            printf("%s*%s\n", item->name, details);
         } else {
             printf("%s%s\n", item->name, details);
         }
