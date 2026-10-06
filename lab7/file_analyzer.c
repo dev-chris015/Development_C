@@ -11,7 +11,7 @@
 #include <getopt.h>
 #include <openssl/md5.h>
 
-// Fase 1: Estructura de información para cada archivo y directorio
+// Estructura de información para cada archivo y directorio
 typedef struct FileInfo {
     char path[1024];          // Ruta completa o relativa
     char name[256];           // Nombre del archivo
@@ -35,7 +35,7 @@ typedef struct Options {
     int detect_duplicates;    // Bandera -d (detección de duplicados)
 } Options;
 
-// Fase 3: Convierte el tamaño en bytes a un formato legible (B, KB, MB, GB, TB)
+// Convierte el tamaño en bytes a un formato legible (B, KB, MB, GB, TB)
 void human_readable_size(off_t bytes, char *buffer, size_t buf_size) {
     const char *units[] = {"B", "KB", "MB", "GB", "TB"};
     double size = (double)bytes;
@@ -53,7 +53,7 @@ void human_readable_size(off_t bytes, char *buffer, size_t buf_size) {
     }
 }
 
-// Fase 3: Traduce los bits de permiso (st_mode) a una cadena tipo rwxr-xr-x
+// Traduce los bits de permiso (st_mode) a una cadena tipo rwxr-xr-x
 void permissions_to_string(mode_t mode, char *str) {
     if (S_ISDIR(mode)) str[0] = 'd';
     else if (S_ISLNK(mode)) str[0] = 'l';
@@ -71,7 +71,7 @@ void permissions_to_string(mode_t mode, char *str) {
     str[10] = '\0';
 }
 
-// Fase 4: Calcula el hash MD5 de un archivo leyendo en bloques usando OpenSSL
+// Calcula el hash MD5 de un archivo leyendo en bloques usando OpenSSL
 int get_file_hash(const char *filepath, char *hash_out) {
     FILE *file = fopen(filepath, "rb");
     if (!file) {
