@@ -1,8 +1,9 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -g
+LDLIBS = -lcrypto
 
 # Archivo/Ejecutable individual a compilar por defecto (modificable con FILE=...)
-FILE ?= lab6/ejercicio
+FILE ?= lab7/file_analyzer
 
 # Buscar todos los ejecutables del proyecto (usado para clean y compile-all)
 SRCS = $(shell find . -type f -name "*.c" | sed 's|^\./||')
@@ -16,7 +17,7 @@ compile-all: $(TARGETS)
 
 # Regla patrón para compilar cualquier archivo .c individualmente
 %: %.c
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) $< -o $@ $(LDLIBS)
 
 run: $(FILE)
 	./$(FILE)
