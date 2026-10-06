@@ -14,26 +14,26 @@
 
 // Estructura de información para cada archivo y directorio
 typedef struct FileInfo {
-    char path[1024];          // Ruta completa o relativa
-    char name[256];           // Nombre del archivo
-    off_t size;               // Tamaño en bytes
-    ino_t inode;              // Número de inodo
-    mode_t mode;              // Permisos (st_mode)
-    uid_t uid;                // ID del propietario
-    gid_t gid;                // ID del grupo
-    time_t mtime;             // Fecha de modificación
-    char hash[33];            // Hash MD5 (si se solicita -h)
-    int is_dir;               // Indicador si es directorio
-    struct FileInfo *next;    // Para lista enlazada
+    char path[1024];          
+    char name[256];           
+    off_t size;               
+    ino_t inode;              
+    mode_t mode;              
+    uid_t uid;                
+    gid_t gid;                
+    time_t mtime;             
+    char hash[33];            
+    int is_dir;               
+    struct FileInfo *next;    
 } FileInfo;
 
 // Configuración de opciones pasadas por línea de comandos
 typedef struct Options {
-    int show_inode;           // Bandera -i (inodo)
-    int show_perms;           // Bandera -p (permisos y propietario/grupo)
-    int show_size;            // Bandera -s (tamaño legible)
-    int show_hash;            // Bandera -h (hash MD5)
-    int detect_duplicates;    // Bandera -d (detección de duplicados)
+    int show_inode;           // -i (inodo)
+    int show_perms;           // -p (permisos y grupo)
+    int show_size;            // -s (tamaño legible)
+    int show_hash;            // -h (hash MD5)
+    int detect_duplicates;    // -d (detección de duplicados)
 } Options;
 
 // Estructura auxiliar para ordenar entradas de directorio antes de imprimirlas
@@ -148,7 +148,7 @@ void free_file_list(FileInfo *head) {
     }
 }
 
-// Imprime los prefijos gráficos de árbol (├──, └──, │   ,    ) según la profundidad
+// Imprimo segun el arbol de carpetas
 void print_tree_prefix(int depth, const int *is_last_stack, int is_last) {
     for (int i = 0; i < depth; i++) {
         if (is_last_stack[i]) {
@@ -164,7 +164,7 @@ void print_tree_prefix(int depth, const int *is_last_stack, int is_last) {
     }
 }
 
-// Formatea los metadatos a imprimir según las opciones seleccionadas (-s, -i, -p, -h)
+// Formato de los metadatos a imprimir segun las opciones seleccionadas
 void format_file_details(FileInfo *node, Options *opts, char *details, size_t max_size) {
     details[0] = '\0';
     char buffer[256];
@@ -198,7 +198,7 @@ void format_file_details(FileInfo *node, Options *opts, char *details, size_t ma
     }
 }
 
-// Función de comparación para qsort: coloca directorios primero y luego ordena alfabéticamente
+// comparar con qsort
 int compare_entries(const void *a, const void *b) {
     const DirEntry *entryA = (const DirEntry *)a;
     const DirEntry *entryB = (const DirEntry *)b;
@@ -207,7 +207,7 @@ int compare_entries(const void *a, const void *b) {
     return strcasecmp(entryA->name, entryB->name);
 }
 
-// Función recursiva para recorrer directorios y extraer metadatos organizados en árbol
+// recorro directorios y extraigo metadatos organizados en árbol
 void analyze_directory(const char *base_path, int depth, int *is_last_stack, Options *opts,
                        FileInfo **file_list, int *total_files, int *total_dirs, off_t *total_bytes) {
     DIR *dir = opendir(base_path);
@@ -301,7 +301,7 @@ void analyze_directory(const char *base_path, int depth, int *is_last_stack, Opt
     free(entries);
 }
 
-// Imprime un resumen visual general limpio y estructurado
+// imprimo un resumen visual general limpio por carpetas y archivos
 void print_summary(int total_dirs, int total_files, off_t total_bytes) {
     char size_str[32];
     human_readable_size(total_bytes, size_str, sizeof(size_str));
@@ -312,7 +312,7 @@ void print_summary(int total_dirs, int total_files, off_t total_bytes) {
     printf("  Tamaño total           : %s\n", size_str);
 }
 
-// Algoritmo de agrupación y reporte de archivos duplicados por inodo o hash MD5
+// funcion de agrupación y reporte de archivos duplicados por inodo o hash MD5
 void process_duplicates(FileInfo *head) {
     printf("\nDetección de Duplicados:\n");
 
@@ -353,7 +353,7 @@ void process_duplicates(FileInfo *head) {
             if (visited[j]) continue;
 
             int is_match = 0;
-            // Coincidencia por inodo (enlaces duros) o por hash MD5
+            // coincidencia por inodo o por hash MD5
             if (files[i]->inode == files[j]->inode) {
                 is_match = 1;
             } else if (files[i]->hash[0] != '\0' && strcmp(files[i]->hash, "ERROR") != 0 &&
@@ -403,7 +403,7 @@ void process_duplicates(FileInfo *head) {
     free(visited);
 }
 
-// Muestra el mensaje de ayuda de uso del programa
+// advertencia de uso de las banderas
 void print_usage(const char *prog_name) {
     printf("Uso: %s [opciones] <directorio>\n\n", prog_name);
     printf("Opciones:\n");
@@ -417,12 +417,12 @@ void print_usage(const char *prog_name) {
     printf("  %s -ipshd /ruta/al/directorio\n", prog_name);
 }
 
-// Punto de entrada principal y análisis de opciones por línea de comandos con getopt()
+// punto de entrada principal
 int main(int argc, char *argv[]) {
     Options opts = {0, 0, 0, 0, 0};
     int opt;
 
-    // Procesamiento de banderas pasadas por consola
+    // proceso banderas pasadas por consola
     while ((opt = getopt(argc, argv, "ipshd")) != -1) {
         switch (opt) {
             case 'i': opts.show_inode = 1; break;
@@ -436,7 +436,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    // Validación del argumento del directorio objetivo
+    // validación del argumento del directorio objetivo
     if (optind >= argc) {
         fprintf(stderr, "Error: Debe especificar un directorio objetivo.\n");
         print_usage(argv[0]);
@@ -459,10 +459,10 @@ int main(int argc, char *argv[]) {
     printf("%s\n", target_dir);
     analyze_directory(target_dir, 0, is_last_stack, &opts, &file_list, &total_files, &total_dirs, &total_bytes);
 
-    // Reporte de resumen general
+    // reporte de resumen general
     print_summary(total_dirs, total_files, total_bytes);
 
-    // Si la opción -d está activada, procesar y mostrar duplicados
+    // si la opción -d está activada, procesar y mostrar duplicados
     if (opts.detect_duplicates) {
         process_duplicates(file_list);
     }
